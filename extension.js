@@ -28,6 +28,7 @@ import { Settings } from './src/core/SettingsManager.js';
 import { migrateLegacyPaths } from './src/core/DataPaths.js';
 import { TimeoutTracker } from './src/core/TimeoutTracker.js';
 import { migrateSettings } from './src/core/SettingsMigration.js';
+import { MatugenWatcher } from './src/core/MatugenWatcher.js';
 import QuickLaunchManager from './src/core/QuickLaunchManager.js';
 import MultiMonitorController from './src/core/MultiMonitorController.js';
 
@@ -68,6 +69,22 @@ export default class DhruvaExtension extends Extension {
         this._syncShortcut();
         this._monitorController.reloadDocks();
         this._quickLaunchManager = new QuickLaunchManager(this._settings, () => this._monitorController.getQuickLaunchDock());
+
+        this._matugenWatcher = new MatugenWatcher(() => this._applyMatugenToDocks());
+        this._matugenWatcher.start();
+        for (const key of ['matugen-enabled', 'matugen-colors-path'])
+            this._settings.connectObject(`changed::${key}`, () => {
+                this._matugenWatcher.start();
+                this._applyMatugenToDocks();
+            }, this);
+    }
+
+    _applyMatugenToDocks() {
+        for (const dock of this._monitorController?.docks || []) {
+            dock._applyDynamicStyles?.();
+            dock.refreshIndicatorColors?.();
+            dock._repaintOpenMenus?.();
+        }
     }
 
     _syncShortcut() {
@@ -94,6 +111,8 @@ export default class DhruvaExtension extends Extension {
         this._timers.destroy();
         this._timers = null;
 
+        this._matugenWatcher?.stop();
+        this._matugenWatcher = null;
         this._quickLaunchManager.destroy();
         this._quickLaunchManager = null;
         this._monitorController.destroy();

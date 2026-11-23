@@ -119,7 +119,9 @@ export function getIndicatorProps(dockUI, appOrIcon = null) {
     const fallbackColor = Settings.indicatorColor || '#ffffff';
 
     let indColor = fallbackColor;
-    if (currentTheme === 'chameleon' && dockUI._chameleonAccent) {
+    if (dockUI._matugenAccent) {
+        indColor = dockUI._matugenAccent;
+    } else if (currentTheme === 'chameleon' && dockUI._chameleonAccent) {
         indColor = dockUI._chameleonAccent;
     } else if (colorMode === 'dominant' && appOrIcon) {
         indColor = extractIconDominantColor(appOrIcon, fallbackColor, () => dockUI.refreshIndicatorColors());

@@ -86,6 +86,16 @@
       <summary>Dock Theme Preset</summary>
     </key>
 
+    <key name="matugen-enabled" type="b">
+      <default>false</default>
+      <summary>Use the Matugen Material 3 palette for the dock</summary>
+    </key>
+
+    <key name="matugen-colors-path" type="s">
+      <default>'~/.config/matugen/matugen-colors.css'</default>
+      <summary>Path to the Matugen generated colors CSS file</summary>
+    </key>
+
     <key name="background-color" type="s">
       <default>'#241F31'</default>
       <summary>Background Color</summary>

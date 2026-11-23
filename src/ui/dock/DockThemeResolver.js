@@ -18,8 +18,10 @@
 
 
 import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
 
 import { Settings } from '../../core/SettingsManager.js';
+import { parseMatugenPalette, hasCompletePalette } from '../../core/MatugenPalette.js';
 import { isFullBarLayout } from '../../core/LayoutMode.js';
 import { hexToRgba, isActorAlive } from '../../core/Utils.js';
 import { DockThemes, applyDockTheme, extractWallpaperDominantColor, getChameleonAccentColor } from '../Themes.js';
@@ -82,6 +84,27 @@ export function resolveTooltipColors(dockUI, themeId, customOpacityPct = null) {
 
 const TRANSPARENT_FILL = 'rgba(0, 0, 0, 0)';
 
+function resolvePalettePath(path) {
+    if (!path) return null;
+    if (path.startsWith('~/')) return GLib.build_filenamev([GLib.get_home_dir(), path.slice(2)]);
+    return path;
+}
+
+/** Read the Matugen palette when enabled and complete; otherwise null. */
+export function readMatugenPalette() {
+    if (!Settings.matugenEnabled) return null;
+    try {
+        const path = resolvePalettePath(Settings.matugenColorsPath);
+        if (!path) return null;
+        const [ok, contents] = GLib.file_get_contents(path);
+        if (!ok) return null;
+        const palette = parseMatugenPalette(new TextDecoder().decode(contents));
+        return hasCompletePalette(palette) ? palette : null;
+    } catch (_e) {
+        return null;
+    }
+}
+
 function _firstThemeColor(css) {
     const match = css.match(/background-gradient-start:\s*([^;!]+)/i) || css.match(/background-color:\s*([^;!]+)/i);
     if (!match) return null;
@@ -133,28 +156,36 @@ export function applyDynamicStyles(dockUI) {
     const baseLayoutCss = `border-radius: ${radius}px; ${borderStyle}`;
     const opacity = Settings.backgroundOpacity / 100.0;
     const currentTheme = Settings.dockTheme || 'default';
+    const matugen = readMatugenPalette();
+    dockUI._matugenAccent = matugen ? matugen.primary : null;
 
-    if (currentTheme === 'chameleon' && !dockUI.chameleonColor) {
+    if (!matugen && currentTheme === 'chameleon' && !dockUI.chameleonColor) {
         dockUI.chameleonColor = { bg: DEFAULT_CHAMELEON_BG, raw: DEFAULT_CHAMELEON_RAW };
         dockUI._chameleonAccent = DEFAULT_CHAMELEON_ACCENT;
         refreshChameleonColor(dockUI);
-    } else if (currentTheme !== 'chameleon') {
+    } else if (matugen || currentTheme !== 'chameleon') {
         cancelChameleonColor(dockUI);
         dockUI.chameleonColor = null;
         dockUI._chameleonAccent = null;
     }
 
     if (!isBlurEnabled) {
-        const customConfig = {
-            opacity,
-            color1: hexToRgba(Settings.backgroundColor, opacity),
-            color2: hexToRgba(Settings.backgroundGradientColor, opacity),
-            useGradient: Settings.useGradient,
-            direction: Settings.gradientDirection,
-            chameleonColor: dockUI.chameleonColor,
-        };
+        if (matugen) {
+            dockUI.bgActor.set_style(
+                `${baseLayoutCss} background-color: ${hexToRgba(matugen.surface, opacity)}; background-gradient-direction: none;`,
+            );
+        } else {
+            const customConfig = {
+                opacity,
+                color1: hexToRgba(Settings.backgroundColor, opacity),
+                color2: hexToRgba(Settings.backgroundGradientColor, opacity),
+                useGradient: Settings.useGradient,
+                direction: Settings.gradientDirection,
+                chameleonColor: dockUI.chameleonColor,
+            };
 
-        applyDockTheme(dockUI.bgActor, currentTheme, baseLayoutCss, customConfig);
+            applyDockTheme(dockUI.bgActor, currentTheme, baseLayoutCss, customConfig);
+        }
     }
 
     const isVertical = dockUI.dockPosition === 'LEFT' || dockUI.dockPosition === 'RIGHT';
@@ -171,9 +202,11 @@ export function applyDynamicStyles(dockUI) {
     dockUI.boxActor.set_style(`background-color: transparent; padding: ${boxPad}; spacing: ${gap}px;`);
 
     const tooltipColors = resolveTooltipColors(dockUI, currentTheme);
-    dockUI.actor._tooltipBg = tooltipColors.css;
-    dockUI.actor._tooltipFg = tooltipColors.fg;
-    dockUI.actor._clockFg = tooltipColors.fg;
+    dockUI.actor._tooltipBg = matugen
+        ? `background-color: ${hexToRgba(matugen.surfaceContainer, Settings.contextMenuOpacity / 100.0)};`
+        : tooltipColors.css;
+    dockUI.actor._tooltipFg = matugen ? matugen.onSurface : tooltipColors.fg;
+    dockUI.actor._clockFg = dockUI.actor._tooltipFg;
 
     if (isActorAlive(dockUI.boxActor)) {
         dockUI.boxActor.get_children().forEach(c => {

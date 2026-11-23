@@ -249,7 +249,7 @@ export function buildAppearancePage(window, settings) {
     heroGroup.add(preview.widget);
 
     const themeGroup = addGroup(page, _('Background'));
-    addGroupReset(themeGroup, settings, ['dock-theme', ...BACKGROUND_KEYS]);
+    addGroupReset(themeGroup, settings, ['dock-theme', 'matugen-enabled', 'matugen-colors-path', ...BACKGROUND_KEYS]);
     addComboRow(themeGroup, settings, 'dock-theme', _('Theme'), _('A ready palette, or your own colours'), THEMES());
 
     const chameleonRow = new Adw.ActionRow({
@@ -259,7 +259,10 @@ export function buildAppearancePage(window, settings) {
     });
     themeGroup.add(chameleonRow);
 
-    const isCustom = () => settings.get_string('dock-theme') === 'default';
+    addSwitchRow(themeGroup, settings, 'matugen-enabled', _('Use Matugen palette'),
+        _('Colours from ~/.config/matugen/matugen-colors.css override the theme'));
+
+    const isCustom = () => settings.get_string('dock-theme') === 'default' && !settings.get_boolean('matugen-enabled');
     const useGradient = () => isCustom() && settings.get_boolean('use-gradient');
 
     const colorRow = addColorRow(themeGroup, settings, 'background-color', _('Colour'));
@@ -274,8 +277,8 @@ export function buildAppearancePage(window, settings) {
         _('Background opacity of context menus, folders, tray and overflow popups'), { lower: 0, upper: 100, step: 5 }, fmt.percent);
 
     showWhen(chameleonRow, settings, ['dock-theme'], () => settings.get_string('dock-theme') === 'chameleon');
-    showWhen(colorRow, settings, ['dock-theme'], isCustom);
-    showWhen(gradientRow, settings, ['dock-theme'], isCustom);
+    showWhen(colorRow, settings, ['dock-theme', 'matugen-enabled'], isCustom);
+    showWhen(gradientRow, settings, ['dock-theme', 'matugen-enabled'], isCustom);
     showWhen(secondColorRow, settings, ['dock-theme', 'use-gradient'], useGradient);
     showWhen(directionRow, settings, ['dock-theme', 'use-gradient'], useGradient);
     showWhen(themeGroup, settings, ['blur-enabled'], () => !isBlur());

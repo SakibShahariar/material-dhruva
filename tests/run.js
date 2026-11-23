@@ -26,6 +26,7 @@ import './LayoutMode.test.js';
 import './AutoHideGeometry.test.js';
 import './DockGeometryCalculator.test.js';
 import './Color.test.js';
+import './MatugenPalette.test.js';
 import './MagnifierMath.test.js';
 import './LaunchMatcher.test.js';
 import './Presets.test.js';

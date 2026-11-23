@@ -92,6 +92,8 @@ const KEYS = {
     tooltipOpacity: [INT, 'tooltip-opacity'],
     showRunningIndicators: [BOOLEAN, 'show-running-indicators'],
     indicatorStyle: [STRING, 'indicator-style'],
+    matugenEnabled: [BOOLEAN, 'matugen-enabled'],
+    matugenColorsPath: [STRING, 'matugen-colors-path'],
     indicatorColorMode: [STRING, 'indicator-color-mode'],
     indicatorColor: [STRING, 'indicator-color'],
     indicatorSize: [INT, 'indicator-size'],
