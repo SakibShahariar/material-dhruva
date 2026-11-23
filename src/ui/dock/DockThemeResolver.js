@@ -106,7 +106,7 @@ const MATUGEN_COLOR_MAP = {
     'separator-color': 'outlineVariant',
     'running-separator-color': 'outlineVariant',
     'panel-separator-color': 'outlineVariant',
-    'grid-icon-color': 'onSurface',
+    'grid-icon-color': 'primary',
     'desktop-btn-color': 'onSurface',
     'blur-tint-color': 'surface',
 };
@@ -194,7 +194,7 @@ export function applyDynamicStyles(dockUI) {
         backgroundGradientColor: matugen.surfaceContainer,
         indicatorColor: matugen.primary,
         notificationBadgeColor: matugen.error || matugen.primary,
-        gridIconColor: matugen.onSurface,
+        gridIconColor: matugen.primary,
         blurTintColor: matugen.surface,
     } : {};
     for (const key of Object.keys(overrides)) {
