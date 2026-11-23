@@ -21,7 +21,8 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 
 
-const UUID = 'dhruva@narkagni';
+const UUID = 'material-dhruva@sakib.dev';
+const LEGACY_UUID = 'dhruva@narkagni';
 const USER_DIRS = ['icon', 'folder_icons', 'blur_bg'];
 const PATH_KEYS = ['custom-grid-icon', 'blur-custom-photo', 'custom-folders', 'app-folders'];
 const LEGACY_CACHE_NAME = 'dhruva-music-art';
@@ -139,26 +140,34 @@ function rewriteConfigFiles(configDir, replacements, cancellable = null) {
 }
 
 export function migrateLegacyPaths(settings, cancellable = null) {
-    const configDir = GLib.build_filenamev([GLib.get_user_config_dir(), UUID]);
-    const replacements = [];
+    const userConfig = GLib.get_user_config_dir();
+    const userData = GLib.get_user_data_dir();
+    const replacements = [[LEGACY_UUID, UUID]];
 
-    for (const name of USER_DIRS) {
-        const from = GLib.build_filenamev([configDir, name]);
-        const to = userDataDir(name);
-        if (move(from, to)) replacements.push([`${from}/`, `${to}/`]);
+    // Move data from both the old Dhruva UUID and this fork's UUID into the
+    // current user data directory so custom icons/photos survive the rebrand.
+    for (const id of [LEGACY_UUID, UUID]) {
+        const configDir = GLib.build_filenamev([userConfig, id]);
+        for (const name of USER_DIRS) {
+            const to = userDataDir(name);
+            const fromConfig = GLib.build_filenamev([configDir, name]);
+            const fromData = GLib.build_filenamev([userData, id, name]);
+            if (fromConfig !== to && move(fromConfig, to)) replacements.push([`${fromConfig}/`, `${to}/`]);
+            if (fromData !== to && move(fromData, to)) replacements.push([`${fromData}/`, `${to}/`]);
+        }
+        rewriteConfigFiles(configDir, replacements, cancellable);
     }
 
     const legacyCache = GLib.build_filenamev([GLib.get_user_cache_dir(), LEGACY_CACHE_NAME]);
     if (move(legacyCache, userCacheDir('music-art')))
         move(GLib.build_filenamev([userCacheDir('music-art'), LYRICS_FILE]), lyricsCachePath());
 
-    if (replacements.length === 0) return;
+    const oldCache = GLib.build_filenamev([GLib.get_user_cache_dir(), LEGACY_UUID]);
+    move(GLib.build_filenamev([oldCache, LYRICS_FILE]), lyricsCachePath());
 
     for (const key of PATH_KEYS) {
         const value = settings.get_string(key);
         const updated = rewrite(value, replacements);
         if (updated !== value) settings.set_string(key, updated);
     }
-
-    rewriteConfigFiles(configDir, replacements, cancellable);
 }

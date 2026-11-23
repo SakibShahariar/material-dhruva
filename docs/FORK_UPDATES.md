@@ -1,7 +1,8 @@
 # Keeping this fork up to date
 
-This fork adds Matugen palette support on top of upstream Dhruva. Our local
-commits live on `main`; upstream is tracked by the `upstream` remote.
+This fork is **Material Dhruva** (`material-dhruva@sakib.dev`), adding Matugen
+palette support on top of upstream Dhruva. Our local commits live on `main`;
+upstream is tracked by the `upstream` remote.
 
 ## One-command sync
 
@@ -29,4 +30,5 @@ session, so code changes are not picked up by `disable`/`enable` alone.
 ## Our diverging commits
 
 - Matugen palette sync (`dea0cdc`, `00665ef`, `d8811c5`)
+- Full rebrand to `material-dhruva@sakib.dev` (settings schema kept as `org.gnome.shell.extensions.dhruva` so all preferences survive)
 - Archived Material Dock goals/ideas: `docs/material-dock-ideas.md` (untracked, kept on purpose)

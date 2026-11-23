@@ -230,7 +230,7 @@ Then restart GNOME Shell so it picks up the extension:
 And enable it:
 
 ```bash
-gnome-extensions enable dhruva@narkagni
+gnome-extensions enable material-dhruva@sakib.dev
 ```
 
 <details>
@@ -252,7 +252,7 @@ Log out and back in afterwards so the new version loads.
 <br>
 
 ```bash
-gnome-extensions uninstall dhruva@narkagni
+gnome-extensions uninstall material-dhruva@sakib.dev
 ```
 
 To also remove all of Dhruva's settings:
