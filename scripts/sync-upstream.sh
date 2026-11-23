@@ -30,8 +30,13 @@ if [ "$local_head" = "$upstream_head" ]; then
     exit 0
 fi
 
+if [ "$merge_base" = "$upstream_head" ]; then
+    echo "Fork already contains $UPSTREAM/$BRANCH (ahead by $(git rev-list --count "$UPSTREAM/$BRANCH..HEAD") commit(s)); nothing to merge."
+    exit 0
+fi
+
 if [ "$merge_base" = "$local_head" ]; then
-    echo "Fork is ahead of $UPSTREAM/$BRANCH; nothing to merge."
+    echo "Local branch has diverged from $UPSTREAM/$BRANCH without new upstream commits; nothing to merge."
     exit 0
 fi
 
