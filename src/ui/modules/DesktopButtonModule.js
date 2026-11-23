@@ -25,6 +25,7 @@ import { hexToRgba } from '../../core/Utils.js';
 import { isFullBarLayout } from '../../core/LayoutMode.js';
 import { TimeoutTracker } from '../../core/TimeoutTracker.js';
 import { fadeMinimize, fadeRestore } from '../effects/WindowEffects.js';
+import { resolveColor } from '../dock/DockThemeResolver.js';
 
 
 const STAGGER_MS = 40;
@@ -107,7 +108,7 @@ export function toggleDesktop(dockUI) {
 
 function _computeDesktopButtonStyle(dockUI, stateMode = 'default') {
     const isVertical = dockUI.dockPosition === 'LEFT' || dockUI.dockPosition === 'RIGHT';
-    const colorHex = dockUI.settings.get_string('desktop-btn-color') || '#ffffff';
+    const colorHex = resolveColor(dockUI, 'desktop-btn-color', '#ffffff');
     const opacity = dockUI.settings.get_int('desktop-btn-opacity');
 
     const isFullWidth = isFullBarLayout();

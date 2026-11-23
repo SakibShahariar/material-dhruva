@@ -57,6 +57,13 @@ export function resolveTooltipColors(dockUI, themeId, customOpacityPct = null) {
     const rawPct = customOpacityPct !== null ? customOpacityPct : Settings.contextMenuOpacity;
     const opacity = Math.min(1.0, Math.max(0.0, rawPct / 100.0));
     const sColor = Settings.strokeColor || '#ffffff';
+    const palette = dockUI?._matugenPalette || readMatugenPalette();
+    if (palette) {
+        return {
+            css: `background-color: ${hexToRgba(palette.surfaceContainer, opacity)}; background-gradient-direction: none;`,
+            fg: palette.onSurface,
+        };
+    }
 
     if (themeId === 'chameleon') {
         const bg = (dockUI.chameleonColor && dockUI.chameleonColor.bg) ? dockUI.chameleonColor.bg : DEFAULT_CHAMELEON_BG;
@@ -91,6 +98,29 @@ function resolvePalettePath(path) {
 }
 
 /** Read the Matugen palette when enabled and complete; otherwise null. */
+const MATUGEN_COLOR_MAP = {
+    'stroke-color': 'outlineVariant',
+    'background-gradient-color': 'surfaceContainer',
+    'indicator-color': 'primary',
+    'notification-badge-color': 'error',
+    'separator-color': 'outlineVariant',
+    'running-separator-color': 'outlineVariant',
+    'panel-separator-color': 'outlineVariant',
+    'grid-icon-color': 'onSurface',
+    'desktop-btn-color': 'onSurface',
+    'blur-tint-color': 'surface',
+};
+
+/** Effective color for a GSettings color key, honoring the Matugen palette. */
+export function resolveColor(dockUI, key, fallback = '#ffffff') {
+    const palette = dockUI?._matugenPalette;
+    if (palette) {
+        const role = MATUGEN_COLOR_MAP[key];
+        if (role && palette[role]) return palette[role];
+    }
+    return dockUI?.settings?.get_string(key) ?? fallback;
+}
+
 export function readMatugenPalette() {
     if (!Settings.matugenEnabled) return null;
     try {
@@ -157,7 +187,20 @@ export function applyDynamicStyles(dockUI) {
     const opacity = Settings.backgroundOpacity / 100.0;
     const currentTheme = Settings.dockTheme || 'default';
     const matugen = readMatugenPalette();
+    dockUI._matugenPalette = matugen;
     dockUI._matugenAccent = matugen ? matugen.primary : null;
+    const overrides = matugen ? {
+        strokeColor: matugen.outlineVariant || matugen.outline,
+        backgroundGradientColor: matugen.surfaceContainer,
+        indicatorColor: matugen.primary,
+        notificationBadgeColor: matugen.error || matugen.primary,
+        gridIconColor: matugen.onSurface,
+        blurTintColor: matugen.surface,
+    } : {};
+    for (const key of Object.keys(overrides)) {
+        if (!overrides[key]) delete overrides[key];
+    }
+    Settings.setOverrides(overrides);
 
     if (!matugen && currentTheme === 'chameleon' && !dockUI.chameleonColor) {
         dockUI.chameleonColor = { bg: DEFAULT_CHAMELEON_BG, raw: DEFAULT_CHAMELEON_RAW };

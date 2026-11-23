@@ -26,6 +26,7 @@ import { isDynamicPanelLayout, isFullBarLayout, isPanelOrFullWidth } from '../..
 import { isActorAlive, hexToRgba } from '../../core/Utils.js';
 import { HYBRID_PANEL_CONFIG } from '../../core/PanelConfig.js';
 import { calculateScale, calculatePivot, calculateBackgroundBounds } from './DockGeometryCalculator.js';
+import { resolveColor } from './DockThemeResolver.js';
 
 
 const DEFAULT_BOX_SIZE = 10;
@@ -70,7 +71,7 @@ function _syncPanelSeparator(dockUI, isVertical, boxX, boxY, boxW, boxH) {
         dockUI.panelSeparator = sep;
     }
 
-    const rgba = hexToRgba(settings.get_string('panel-separator-color'), settings.get_int('panel-separator-opacity') / 100.0);
+    const rgba = hexToRgba(resolveColor(dockUI, 'panel-separator-color', '#ffffff'), settings.get_int('panel-separator-opacity') / 100.0);
     sep.set_style(`background-color: ${rgba}; border-radius: ${thickness}px;`);
 
     const crossSpan = isVertical ? boxW : boxH;

@@ -182,19 +182,31 @@ const KEYS = {
 
 export const Settings = {
     _settings: null,
+    _overrides: {},
 
     init(settings) {
         this._settings = settings;
     },
 
+    setOverrides(overrides) {
+        this._overrides = overrides || {};
+    },
+
+    clearOverrides() {
+        this._overrides = {};
+    },
+
     destroy() {
         this._settings = null;
+        this._overrides = {};
     },
 };
 
 for (const [name, [codec, key]] of Object.entries(KEYS)) {
     Object.defineProperty(Settings, name, {
         get() {
+            if (Object.prototype.hasOwnProperty.call(this._overrides, name))
+                return this._overrides[name];
             return this._settings ? codec.read(this._settings, key) : codec.empty();
         },
         set(value) {

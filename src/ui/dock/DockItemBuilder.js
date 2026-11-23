@@ -32,6 +32,7 @@ import { animateIconClick } from '../effects/IconClickEffect.js';
 import { setupDragAndDrop, applyIconFilter } from '../DragDrop.js';
 import { setMagnifierPauseState } from '../magnifier/MagnifierState.js';
 import { getIndicatorProps, filterActiveWindows } from './DockRenderer.js';
+import { resolveColor } from './DockThemeResolver.js';
 import { animateMinimize, animateRestore } from '../effects/WindowEffects.js';
 import { hexToRgba, isActorAlive, setBoxVertical, captureActorRect } from '../../core/Utils.js';
 import {
@@ -150,7 +151,7 @@ export function createSeparator(dockUI, iconSize, isVerticalDock, type = 'module
     const prefix = separatorPrefix(type);
     const width = dockUI.settings.get_int(`${prefix}-width`);
     const heightPercent = dockUI.settings.get_int(`${prefix}-height`);
-    const colorHex = dockUI.settings.get_string(`${prefix}-color`);
+    const colorHex = resolveColor(dockUI, `${prefix}-color`, '#ffffff');
     const opacity = dockUI.settings.get_int(`${prefix}-opacity`) / 100.0;
     const rgba = hexToRgba(colorHex, opacity);
     const lengthPx = Math.max(1, Math.floor(iconSize * (heightPercent / 100.0)));
